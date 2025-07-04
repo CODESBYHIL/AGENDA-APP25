@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>✨ Agenda Organizer</title>
+    <meta name="description" content="Plan your perfect day, weekend, or trip with smart location suggestions and collaborative planning features">
+    <meta name="keywords" content="agenda, planner, travel, events, schedule, timeline, planning, itinerary">
+    <meta name="author" content="Agenda Organizer">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -1038,6 +1042,7 @@
             setupEventListeners();
             initializeDate();
             detectUserLocation();
+            setupKeyboardShortcuts();
             
             // Try to load saved agenda first, otherwise load sample data
             const saved = localStorage.getItem('savedAgenda');
@@ -1047,6 +1052,28 @@
                 loadSampleData();
             }
         });
+
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+N or Cmd+N for quick add
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    quickAddEvent();
+                }
+                
+                // Ctrl+S or Cmd+S for save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveAgenda();
+                }
+                
+                // Escape to close modals
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        }
 
         // Detect user location
         function detectUserLocation() {
@@ -1071,32 +1098,38 @@
 
         // Get city from coordinates (simplified - in real app would use Google Maps API)
         function getCityFromCoords(lat, lng) {
-            // More accurate city detection based on coordinates
-            if (lat >= 19.5 && lat <= 22.5 && lng >= -161.0 && lng <= -154.0) {
-                userLocation.city = 'hawaii';
-            } else if (lat >= 34.0 && lat <= 34.5 && lng >= -118.7 && lng <= -118.0) {
-                userLocation.city = 'los angeles';
-            } else if (lat >= 40.4 && lat <= 40.9 && lng >= -74.3 && lng <= -73.7) {
-                userLocation.city = 'new york';
-            } else if (lat >= 37.6 && lat <= 37.9 && lng >= -122.7 && lng <= -122.3) {
-                userLocation.city = 'san francisco';
-            } else if (lat >= 25.5 && lat <= 26.0 && lng >= -80.5 && lng <= -80.0) {
-                userLocation.city = 'miami';
-            } else {
-                // Show actual coordinates for debugging
-                console.log(`Unknown location: ${lat}, ${lng}`);
-                userLocation.city = 'hawaii'; // Default to Hawaii
-                showNotification(`Unknown location (${lat.toFixed(2)}, ${lng.toFixed(2)}) - set your city manually`, 'info');
-                return;
+            try {
+                // More accurate city detection based on coordinates
+                if (lat >= 19.5 && lat <= 22.5 && lng >= -161.0 && lng <= -154.0) {
+                    userLocation.city = 'hawaii';
+                } else if (lat >= 34.0 && lat <= 34.5 && lng >= -118.7 && lng <= -118.0) {
+                    userLocation.city = 'los angeles';
+                } else if (lat >= 40.4 && lat <= 40.9 && lng >= -74.3 && lng <= -73.7) {
+                    userLocation.city = 'new york';
+                } else if (lat >= 37.6 && lat <= 37.9 && lng >= -122.7 && lng <= -122.3) {
+                    userLocation.city = 'san francisco';
+                } else if (lat >= 25.5 && lat <= 26.0 && lng >= -80.5 && lng <= -80.0) {
+                    userLocation.city = 'miami';
+                } else {
+                    // Show actual coordinates for debugging
+                    console.log(`Unknown location: ${lat}, ${lng}`);
+                    userLocation.city = 'hawaii'; // Default to Hawaii
+                    showNotification(`Unknown location (${lat.toFixed(2)}, ${lng.toFixed(2)}) - set your city manually`, 'info');
+                    return;
+                }
+                
+                // Update the city selector
+                const citySelector = document.getElementById('citySelector');
+                if (citySelector) {
+                    citySelector.value = userLocation.city;
+                }
+                
+                showNotification(`Detected location: ${userLocation.city.charAt(0).toUpperCase() + userLocation.city.slice(1)}`, 'success');
+            } catch (error) {
+                console.error('Error detecting city from coordinates:', error);
+                userLocation.city = 'hawaii'; // Default fallback
+                showNotification('Error detecting location - using default city', 'info');
             }
-            
-            // Update the city selector
-            const citySelector = document.getElementById('citySelector');
-            if (citySelector) {
-                citySelector.value = userLocation.city;
-            }
-            
-            showNotification(`Detected location: ${userLocation.city.charAt(0).toUpperCase() + userLocation.city.slice(1)}`, 'success');
         }
 
         function setupEventListeners() {
@@ -1177,85 +1210,119 @@
         }
 
         function addEvent() {
-            const time = document.getElementById('eventTime').value;
-            const location = document.getElementById('eventLocation').value;
-            const title = document.getElementById('eventTitle').value;
-            const notes = document.getElementById('eventNotes').value;
-            const link = document.getElementById('eventLink').value;
-            const category = document.getElementById('eventCategory').value;
+            try {
+                const time = document.getElementById('eventTime')?.value?.trim();
+                const location = document.getElementById('eventLocation')?.value?.trim();
+                const title = document.getElementById('eventTitle')?.value?.trim();
+                const notes = document.getElementById('eventNotes')?.value?.trim();
+                const link = document.getElementById('eventLink')?.value?.trim();
+                const category = document.getElementById('eventCategory')?.value;
 
-            if (!time || !title) {
-                showNotification('Please fill in at least the time and title!', 'error');
-                return;
-            }
-
-            const event = {
-                id: Date.now(),
-                time,
-                location,
-                title,
-                notes,
-                link,
-                category,
-                suggestions: generateSuggestions(location, category),
-                comments: []
-            };
-
-            events.push(event);
-            renderTimeline();
-            updateTimelineActions();
-            clearForm();
-            showNotification('Event added successfully! 🎉', 'success');
-            
-            // Animate the newly added item
-            setTimeout(() => {
-                const newItem = document.querySelector(`[data-event-id="${event.id}"]`);
-                if (newItem) {
-                    newItem.style.animation = 'bounceIn 0.6s ease-out';
-                    newItem.style.transform = 'scale(1.02)';
-                    setTimeout(() => {
-                        newItem.style.animation = '';
-                        newItem.style.transform = '';
-                    }, 600);
+                // Validation
+                if (!time || !title) {
+                    showNotification('Please fill in at least the time and title!', 'error');
+                    return;
                 }
-            }, 100);
+
+                // Validate time format
+                const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (!timeRegex.test(time)) {
+                    showNotification('Please enter a valid time format (HH:MM)', 'error');
+                    return;
+                }
+
+                // Validate URL if provided
+                if (link && !isValidURL(link)) {
+                    showNotification('Please enter a valid URL', 'error');
+                    return;
+                }
+
+                const event = {
+                    id: Date.now(),
+                    time,
+                    location: location || '',
+                    title,
+                    notes: notes || '',
+                    link: link || '',
+                    category: category || 'chill',
+                    suggestions: generateSuggestions(location, category),
+                    comments: []
+                };
+
+                events.push(event);
+                renderTimeline();
+                updateTimelineActions();
+                clearForm();
+                showNotification('Event added successfully! 🎉', 'success');
+                
+                // Animate the newly added item
+                setTimeout(() => {
+                    const newItem = document.querySelector(`[data-event-id="${event.id}"]`);
+                    if (newItem) {
+                        newItem.style.animation = 'bounceIn 0.6s ease-out';
+                        newItem.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            newItem.style.animation = '';
+                            newItem.style.transform = '';
+                        }, 600);
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Error adding event:', error);
+                showNotification('Error adding event. Please try again.', 'error');
+            }
+        }
+
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
         }
 
         function generateSuggestions(eventLocation, eventCategory) {
-            const userCity = userLocation.city || 'los angeles';
-            const cityData = placesData[userCity];
-            
-            if (!cityData) return [];
-            
-            let suggestions = [];
-            
-            // Smart suggestions based on event category
-            if (eventCategory === 'food') {
-                suggestions = [...cityData.restaurants, ...cityData.cafes];
-            } else if (eventCategory === 'chill') {
-                suggestions = [...cityData.attractions, ...cityData.cafes];
-            } else if (eventCategory === 'errand') {
-                suggestions = [...cityData.shopping, ...cityData.cafes];
-            } else {
-                // Mix of everything
-                suggestions = [
-                    ...cityData.restaurants.slice(0, 2),
-                    ...cityData.cafes.slice(0, 2),
-                    ...cityData.attractions.slice(0, 2)
-                ];
+            try {
+                const userCity = userLocation.city || 'los angeles';
+                const cityData = placesData[userCity];
+                
+                if (!cityData) return [];
+                
+                let suggestions = [];
+                
+                // Smart suggestions based on event category
+                if (eventCategory === 'food') {
+                    suggestions = [...(cityData.restaurants || []), ...(cityData.cafes || [])];
+                } else if (eventCategory === 'chill') {
+                    suggestions = [...(cityData.attractions || []), ...(cityData.cafes || [])];
+                } else if (eventCategory === 'errand') {
+                    suggestions = [...(cityData.shopping || []), ...(cityData.cafes || [])];
+                } else {
+                    // Mix of everything
+                    suggestions = [
+                        ...(cityData.restaurants || []).slice(0, 2),
+                        ...(cityData.cafes || []).slice(0, 2),
+                        ...(cityData.attractions || []).slice(0, 2)
+                    ];
+                }
+                
+                // Sort by rating and return top 4
+                return suggestions
+                    .filter(place => place && place.name && place.rating) // Filter out invalid entries
+                    .sort((a, b) => b.rating - a.rating)
+                    .slice(0, 4)
+                    .map(place => ({
+                        name: place.name,
+                        type: place.type || 'Unknown',
+                        rating: place.rating,
+                        area: place.area || 'Unknown Area',
+                        displayText: `${place.name} (${place.rating}★) - ${place.area || 'Unknown Area'}`
+                    }));
+            } catch (error) {
+                console.error('Error generating suggestions:', error);
+                return [];
             }
-            
-            // Sort by rating and return top 4
-            return suggestions
-                .sort((a, b) => b.rating - a.rating)
-                .slice(0, 4)
-                .map(place => ({
-                    name: place.name,
-                    type: place.type,
-                    rating: place.rating,
-                    area: place.area,
-                    displayText: `${place.name} (${place.rating}★) - ${place.area}`
-                }));
         }
 
         function renderTimeline() {
@@ -1474,24 +1541,52 @@
         }
 
         function parseTime(timeStr) {
-            // Convert natural time to 24-hour format
-            if (timeStr.includes('pm') && !timeStr.includes('12')) {
-                const hour = parseInt(timeStr) + 12;
-                return `${hour}:00`;
+            try {
+                // Convert natural time to 24-hour format
+                const cleanTime = timeStr.toLowerCase().trim();
+                
+                if (cleanTime.includes('pm') && !cleanTime.includes('12')) {
+                    const hour = parseInt(cleanTime) + 12;
+                    const minutes = cleanTime.includes(':') ? cleanTime.split(':')[1].replace(/[apm]/gi, '').trim() : '00';
+                    return `${hour}:${minutes.padStart(2, '0')}`;
+                } else if (cleanTime.includes('am')) {
+                    const hour = parseInt(cleanTime);
+                    const minutes = cleanTime.includes(':') ? cleanTime.split(':')[1].replace(/[apm]/gi, '').trim() : '00';
+                    const finalHour = hour === 12 ? 0 : hour;
+                    return `${finalHour.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+                } else if (cleanTime.includes(':')) {
+                    const parts = cleanTime.split(':');
+                    const hour = parseInt(parts[0]);
+                    const minutes = parts[1].replace(/[apm]/gi, '').trim();
+                    return `${hour.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+                } else {
+                    const hour = parseInt(cleanTime.replace(/[apm]/gi, ''));
+                    return `${hour.toString().padStart(2, '0')}:00`;
+                }
+            } catch (error) {
+                console.error('Error parsing time:', error);
+                return '12:00'; // Default fallback
             }
-            return timeStr.includes(':') ? timeStr.replace(/[apm]/gi, '') : `${timeStr.replace(/[apm]/gi, '')}:00`;
         }
 
         function reorderEvents() {
-            // Update events array based on DOM order
-            const timelineItems = document.querySelectorAll('.timeline-item');
-            const newOrder = [];
-            timelineItems.forEach(item => {
-                const eventId = parseInt(item.dataset.eventId);
-                const event = events.find(e => e.id === eventId);
-                if (event) newOrder.push(event);
-            });
-            events = newOrder;
+            try {
+                // Update events array based on DOM order
+                const timelineItems = document.querySelectorAll('.timeline-item');
+                const newOrder = [];
+                timelineItems.forEach(item => {
+                    const eventId = parseInt(item.dataset.eventId);
+                    const event = events.find(e => e.id === eventId);
+                    if (event) newOrder.push(event);
+                });
+                events = newOrder;
+                
+                // Auto-save after reordering
+                autoSave();
+            } catch (error) {
+                console.error('Error reordering events:', error);
+                showNotification('Error reordering events', 'error');
+            }
         }
 
         function loadSampleData() {
@@ -1551,35 +1646,57 @@
         }
 
         function saveAgenda() {
-            const agendaData = {
-                type: agendaType,
-                date: document.getElementById('agendaDate').value,
-                events: events,
-                members: groupMembers,
-                savedAt: new Date().toISOString()
-            };
-            
-            localStorage.setItem('savedAgenda', JSON.stringify(agendaData));
-            showNotification('Agenda saved successfully! 💾', 'success');
+            try {
+                const agendaData = {
+                    type: agendaType,
+                    date: document.getElementById('agendaDate').value,
+                    events: events,
+                    members: groupMembers,
+                    savedAt: new Date().toISOString()
+                };
+                
+                localStorage.setItem('savedAgenda', JSON.stringify(agendaData));
+                showNotification('Agenda saved successfully! 💾', 'success');
+            } catch (error) {
+                console.error('Error saving agenda:', error);
+                showNotification('Error saving agenda. Please try again.', 'error');
+            }
         }
 
         function loadAgenda() {
-            const saved = localStorage.getItem('savedAgenda');
-            if (saved) {
-                const agendaData = JSON.parse(saved);
-                agendaType = agendaData.type;
-                events = agendaData.events || [];
-                groupMembers = agendaData.members || groupMembers;
-                
-                document.getElementById('agendaDate').value = agendaData.date || '';
-                
-                // Update UI
-                document.querySelectorAll('.agenda-type').forEach(t => t.classList.remove('active'));
-                document.querySelector(`[data-type="${agendaType}"]`).classList.add('active');
-                
+            try {
+                const saved = localStorage.getItem('savedAgenda');
+                if (saved) {
+                    const agendaData = JSON.parse(saved);
+                    agendaType = agendaData.type || 'day';
+                    events = agendaData.events || [];
+                    groupMembers = agendaData.members || groupMembers;
+                    
+                    const dateInput = document.getElementById('agendaDate');
+                    if (dateInput) {
+                        dateInput.value = agendaData.date || '';
+                    }
+                    
+                    // Update UI
+                    document.querySelectorAll('.agenda-type').forEach(t => t.classList.remove('active'));
+                    const activeType = document.querySelector(`[data-type="${agendaType}"]`);
+                    if (activeType) {
+                        activeType.classList.add('active');
+                    }
+                    
+                    renderTimeline();
+                    renderGroupMembers();
+                    showNotification('Agenda loaded! 📅', 'success');
+                } else {
+                    showNotification('No saved agenda found.', 'info');
+                }
+            } catch (error) {
+                console.error('Error loading agenda:', error);
+                showNotification('Error loading agenda. Starting fresh.', 'error');
+                // Reset to default state
+                events = [];
                 renderTimeline();
                 renderGroupMembers();
-                showNotification('Agenda loaded! 📅', 'success');
             }
         }
 
@@ -1631,8 +1748,13 @@
 
         // Auto-save functionality
         function autoSave() {
-            if (events.length > 0) {
-                saveAgenda();
+            try {
+                if (events.length > 0) {
+                    saveAgenda();
+                }
+            } catch (error) {
+                console.error('Auto-save error:', error);
+                // Silent fail for auto-save to not disrupt user experience
             }
         }
 
