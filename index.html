@@ -308,7 +308,7 @@
         .form-control:focus {
             outline: none;
             border-color: #1A1A1A;
-            box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.1);
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
             transform: translateY(-1px);
         }
 
@@ -609,6 +609,37 @@
             .container {
                 padding: 15px;
             }
+            
+            .timeline-item {
+                margin-bottom: 12px;
+                padding: 12px;
+            }
+            
+            .suggestion-chips {
+                flex-direction: column;
+                gap: 6px;
+            }
+            
+            .suggestion-chip {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+            
+            .floating-add-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 44px;
+                height: 44px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 30px 20px;
+            }
+            
+            .event-form {
+                padding: 16px;
+            }
         }
 
         .empty-state {
@@ -626,8 +657,6 @@
         .empty-state p {
             font-size: 0.875rem;
         }
-
-
 
         .ai-suggestion-box {
             background: #F9FAFB;
@@ -719,13 +748,189 @@
         .save-agenda-btn:hover {
             box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
         }
+
+        /* Enhanced styles and improvements */
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .keyboard-shortcut {
+            font-size: 0.7rem;
+            color: #9CA3AF;
+            margin-top: 4px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #F3F4F6;
+            border-top: 3px solid #1A1A1A;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .undo-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #6B7280;
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: scale(0.8);
+            z-index: 999;
+        }
+
+        .undo-btn.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .undo-btn:hover {
+            background: #4B5563;
+            transform: scale(1.05);
+        }
+
+        .error-boundary {
+            border: 2px solid #FEF2F2;
+            background: #FEF2F2;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            color: #991B1B;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .error-boundary.show {
+            display: block;
+        }
+
+        /* Quick add improvements */
+        .quick-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .quick-suggestion {
+            padding: 6px 12px;
+            background: #F3F4F6;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-suggestion:hover {
+            background: #1A1A1A;
+            color: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1A1A1A;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .enhanced-input {
+            position: relative;
+        }
+
+        .enhanced-input .form-control {
+            padding-right: 40px;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+            pointer-events: none;
+        }
     </style>
 </head>
-<body>
+  <body>
+    <!-- Enhanced UI elements -->
+    <div class="save-indicator" id="saveIndicator">
+        <i class="fas fa-save"></i> Auto-saved
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="error-boundary" id="errorBoundary">
+        <strong>Something went wrong!</strong> Please refresh the page and try again.
+    </div>
+    
+    <button class="undo-btn" id="undoBtn" onclick="undoLastAction()" title="Undo last action (Ctrl+Z)">
+        <i class="fas fa-undo"></i>
+    </button>
+    
     <div class="container">
         <header class="header">
-            <h1>Agenda</h1>
+            <h1>✨ Agenda Organizer</h1>
             <p>Plan your perfect day, weekend, or trip</p>
+            <div class="keyboard-shortcut">
+                Tip: Press <strong>Ctrl+A</strong> to quick add, <strong>Ctrl+S</strong> to save, <strong>Ctrl+Z</strong> to undo
+            </div>
         </header>
 
         <div class="ai-suggestion-box">
@@ -790,36 +995,41 @@
 
                 <div class="event-form">
                     <h3 style="margin-bottom: 16px; font-size: 1rem; font-weight: 500;">Add New Event</h3>
-                    <div class="form-group">
+                    <div class="form-group enhanced-input">
                         <label>Time</label>
                         <input type="time" class="form-control" id="eventTime">
+                        <i class="fas fa-clock input-icon"></i>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group enhanced-input">
                         <label>Location</label>
                         <input type="text" class="form-control" id="eventLocation" placeholder="Enter location">
+                        <i class="fas fa-map-marker-alt input-icon"></i>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group enhanced-input">
                         <label>Title</label>
                         <input type="text" class="form-control" id="eventTitle" placeholder="What's happening?">
+                        <i class="fas fa-edit input-icon"></i>
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
                         <textarea class="form-control" id="eventNotes" rows="2" placeholder="Additional notes"></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group enhanced-input">
                         <label>Link</label>
                         <input type="url" class="form-control" id="eventLink" placeholder="Website or menu">
+                        <i class="fas fa-link input-icon"></i>
                     </div>
                     <div class="form-group">
                         <label>Category</label>
                         <select class="form-control" id="eventCategory">
-                            <option value="food">Food</option>
-                            <option value="chill">Chill</option>
-                            <option value="errand">Errand</option>
-                            <option value="work">Work</option>
+                            <option value="food">🍽️ Food</option>
+                            <option value="chill">😎 Chill</option>
+                            <option value="errand">📝 Errand</option>
+                            <option value="work">💼 Work</option>
                         </select>
                     </div>
                     <button class="btn" onclick="addEvent()">Add Event</button>
+                    <div class="keyboard-shortcut">Press Enter to add event</div>
                 </div>
 
                 <div class="group-section">
@@ -865,7 +1075,7 @@
         +
     </button>
 
-    <!-- Modal for quick add -->
+    <!-- Enhanced Modal for quick add -->
     <div class="modal" id="quickAddModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -875,7 +1085,25 @@
                     <label>Event Description</label>
                     <input type="text" class="form-control" id="quickEventText" placeholder="e.g., Lunch at Italian place at 1pm">
                 </div>
-                <button class="btn" onclick="parseQuickEvent()">Add Event</button>
+                
+                <!-- Quick suggestions -->
+                <div class="quick-suggestions">
+                    <div class="quick-suggestion" onclick="fillQuickEvent('Coffee at 9am')">☕ Coffee at 9am</div>
+                    <div class="quick-suggestion" onclick="fillQuickEvent('Lunch meeting at 12pm')">🍽️ Lunch meeting at 12pm</div>
+                    <div class="quick-suggestion" onclick="fillQuickEvent('Beach walk at 5pm')">🏖️ Beach walk at 5pm</div>
+                    <div class="quick-suggestion" onclick="fillQuickEvent('Movie night at 8pm')">🎬 Movie night at 8pm</div>
+                    <div class="quick-suggestion" onclick="fillQuickEvent('Gym workout at 7am')">💪 Gym workout at 7am</div>
+                    <div class="quick-suggestion" onclick="fillQuickEvent('Grocery shopping at 3pm')">🛒 Grocery shopping at 3pm</div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="parseQuickEvent()">Add Event</button>
+                    <button class="btn btn-secondary" onclick="closeModal()" style="margin-left: 8px;">Cancel</button>
+                </div>
+                
+                <div class="keyboard-shortcut">
+                    Press Enter to add • ESC to cancel
+                </div>
             </div>
         </div>
     </div>
@@ -1033,20 +1261,7 @@
         let userLocation = { city: null, lat: null, lng: null };
         let userPreferences = { dietaryRestrictions: [], interests: [], budget: 'medium' };
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-            initializeDate();
-            detectUserLocation();
-            
-            // Try to load saved agenda first, otherwise load sample data
-            const saved = localStorage.getItem('savedAgenda');
-            if (saved) {
-                loadAgenda();
-            } else {
-                loadSampleData();
-            }
-        });
+        // Original initialization removed - using enhanced version below
 
         // Detect user location
         function detectUserLocation() {
@@ -1176,50 +1391,7 @@
             });
         }
 
-        function addEvent() {
-            const time = document.getElementById('eventTime').value;
-            const location = document.getElementById('eventLocation').value;
-            const title = document.getElementById('eventTitle').value;
-            const notes = document.getElementById('eventNotes').value;
-            const link = document.getElementById('eventLink').value;
-            const category = document.getElementById('eventCategory').value;
-
-            if (!time || !title) {
-                showNotification('Please fill in at least the time and title!', 'error');
-                return;
-            }
-
-            const event = {
-                id: Date.now(),
-                time,
-                location,
-                title,
-                notes,
-                link,
-                category,
-                suggestions: generateSuggestions(location, category),
-                comments: []
-            };
-
-            events.push(event);
-            renderTimeline();
-            updateTimelineActions();
-            clearForm();
-            showNotification('Event added successfully! 🎉', 'success');
-            
-            // Animate the newly added item
-            setTimeout(() => {
-                const newItem = document.querySelector(`[data-event-id="${event.id}"]`);
-                if (newItem) {
-                    newItem.style.animation = 'bounceIn 0.6s ease-out';
-                    newItem.style.transform = 'scale(1.02)';
-                    setTimeout(() => {
-                        newItem.style.animation = '';
-                        newItem.style.transform = '';
-                    }, 600);
-                }
-            }, 100);
-        }
+        // Original addEvent function removed - using enhanced version below
 
         function generateSuggestions(eventLocation, eventCategory) {
             const userCity = userLocation.city || 'los angeles';
@@ -1540,28 +1712,9 @@
             renderGroupMembers();
         }
 
-        // Add missing functions
-        function deleteEvent(eventId) {
-            if (confirm('Are you sure you want to delete this event?')) {
-                events = events.filter(e => e.id !== eventId);
-                renderTimeline();
-                updateTimelineActions();
-                showNotification('Event deleted! 🗑️', 'success');
-            }
-        }
+        // Original deleteEvent function removed - using enhanced version below
 
-        function saveAgenda() {
-            const agendaData = {
-                type: agendaType,
-                date: document.getElementById('agendaDate').value,
-                events: events,
-                members: groupMembers,
-                savedAt: new Date().toISOString()
-            };
-            
-            localStorage.setItem('savedAgenda', JSON.stringify(agendaData));
-            showNotification('Agenda saved successfully! 💾', 'success');
-        }
+        // Original saveAgenda function removed - using enhanced version below
 
         function loadAgenda() {
             const saved = localStorage.getItem('savedAgenda');
@@ -1583,25 +1736,7 @@
             }
         }
 
-        function showNotification(message, type = 'success') {
-            // Remove existing notifications
-            document.querySelectorAll('.notification').forEach(n => n.remove());
-            
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            notification.style.backgroundColor = type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6';
-            document.body.appendChild(notification);
-            
-            // Show notification with enhanced animation
-            setTimeout(() => notification.classList.add('show'), 100);
-            
-            // Hide after 3 seconds
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 400);
-            }, 3000);
-        }
+        // Original showNotification function removed - using enhanced version below
 
         function exportAgenda() {
             const agendaData = {
@@ -1683,6 +1818,368 @@
 
         // Auto-save every 30 seconds
         setInterval(autoSave, 30000);
+
+        // Enhanced functionality additions
+        let actionHistory = [];
+        let isProcessing = false;
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Error caught:', e.error);
+            showErrorBoundary('An unexpected error occurred. Please try again.');
+        });
+
+        function showErrorBoundary(message) {
+            const errorBoundary = document.getElementById('errorBoundary');
+            errorBoundary.innerHTML = `<strong>Something went wrong!</strong> ${message}`;
+            errorBoundary.classList.add('show');
+            setTimeout(() => errorBoundary.classList.remove('show'), 5000);
+        }
+
+        // Loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+            isProcessing = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+            isProcessing = false;
+        }
+
+        // Enhanced save function with indicator
+        function saveAgenda() {
+            try {
+                const agendaData = {
+                    type: agendaType,
+                    date: document.getElementById('agendaDate').value,
+                    events: events,
+                    members: groupMembers,
+                    savedAt: new Date().toISOString()
+                };
+                
+                localStorage.setItem('savedAgenda', JSON.stringify(agendaData));
+                showSaveIndicator();
+                showNotification('Agenda saved successfully! 💾', 'success');
+            } catch (error) {
+                showErrorBoundary('Failed to save agenda. Please try again.');
+                console.error('Save error:', error);
+            }
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+        }
+
+        // Enhanced auto-save with indicator
+        function autoSave() {
+            if (events.length > 0 && !isProcessing) {
+                try {
+                    const agendaData = {
+                        type: agendaType,
+                        date: document.getElementById('agendaDate').value,
+                        events: events,
+                        members: groupMembers,
+                        savedAt: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('savedAgenda', JSON.stringify(agendaData));
+                    showSaveIndicator();
+                } catch (error) {
+                    console.error('Auto-save error:', error);
+                }
+            }
+        }
+
+        // Undo functionality
+        function saveStateForUndo() {
+            const currentState = {
+                events: [...events],
+                members: [...groupMembers],
+                agendaType: agendaType,
+                timestamp: Date.now()
+            };
+            
+            actionHistory.push(currentState);
+            
+            // Keep only last 10 actions
+            if (actionHistory.length > 10) {
+                actionHistory.shift();
+            }
+            
+            updateUndoButton();
+        }
+
+        function undoLastAction() {
+            if (actionHistory.length > 0) {
+                const lastState = actionHistory.pop();
+                events = [...lastState.events];
+                groupMembers = [...lastState.members];
+                agendaType = lastState.agendaType;
+                
+                // Update UI
+                document.querySelectorAll('.agenda-type').forEach(t => t.classList.remove('active'));
+                document.querySelector(`[data-type="${agendaType}"]`).classList.add('active');
+                
+                renderTimeline();
+                renderGroupMembers();
+                updateUndoButton();
+                showNotification('Action undone! ↩️', 'info');
+            }
+        }
+
+        function updateUndoButton() {
+            const undoBtn = document.getElementById('undoBtn');
+            if (actionHistory.length > 0) {
+                undoBtn.classList.add('show');
+            } else {
+                undoBtn.classList.remove('show');
+            }
+        }
+
+        // Enhanced addEvent with state saving
+        function addEvent() {
+            const time = document.getElementById('eventTime').value;
+            const location = document.getElementById('eventLocation').value;
+            const title = document.getElementById('eventTitle').value;
+            const notes = document.getElementById('eventNotes').value;
+            const link = document.getElementById('eventLink').value;
+            const category = document.getElementById('eventCategory').value;
+
+            if (!time || !title) {
+                showNotification('Please fill in at least the time and title!', 'error');
+                return;
+            }
+
+            // Save state for undo
+            saveStateForUndo();
+
+            const event = {
+                id: Date.now(),
+                time,
+                location,
+                title,
+                notes,
+                link,
+                category,
+                suggestions: generateSuggestions(location, category),
+                comments: []
+            };
+
+            events.push(event);
+            renderTimeline();
+            updateTimelineActions();
+            clearForm();
+            showNotification('Event added successfully! 🎉', 'success');
+            
+            // Animate the newly added item
+            setTimeout(() => {
+                const newItem = document.querySelector(`[data-event-id="${event.id}"]`);
+                if (newItem) {
+                    newItem.style.animation = 'bounceIn 0.6s ease-out';
+                    newItem.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        newItem.style.animation = '';
+                        newItem.style.transform = '';
+                    }, 600);
+                }
+            }, 100);
+        }
+
+        // Enhanced deleteEvent with state saving
+        function deleteEvent(eventId) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                saveStateForUndo();
+                events = events.filter(e => e.id !== eventId);
+                renderTimeline();
+                updateTimelineActions();
+                showNotification('Event deleted! 🗑️', 'success');
+            }
+        }
+
+        // Quick event suggestions
+        function fillQuickEvent(text) {
+            document.getElementById('quickEventText').value = text;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+A for quick add
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                quickAddEvent();
+            }
+            
+            // Ctrl+S for save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveAgenda();
+            }
+            
+            // Ctrl+Z for undo
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undoLastAction();
+            }
+            
+            // ESC to close modal
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            
+            // Enter to add event in quick modal
+            if (e.key === 'Enter' && document.getElementById('quickAddModal').style.display === 'block') {
+                parseQuickEvent();
+            }
+            
+            // Enter to add event in main form
+            if (e.key === 'Enter' && document.activeElement && document.activeElement.closest('.event-form')) {
+                e.preventDefault();
+                addEvent();
+            }
+        });
+
+        // Enhanced form validation
+        function validateForm() {
+            const requiredFields = ['eventTime', 'eventTitle'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#EF4444';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#D1D5DB';
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Enhanced URL validation
+        function validateURL(url) {
+            if (!url) return true;
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // Enhanced time parsing
+        function parseTime(timeStr) {
+            const cleanTime = timeStr.toLowerCase().trim();
+            
+            // Handle "noon" and "midnight"
+            if (cleanTime.includes('noon')) return '12:00';
+            if (cleanTime.includes('midnight')) return '00:00';
+            
+            // Enhanced regex for time patterns
+            const timeMatch = cleanTime.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+            if (!timeMatch) return '12:00';
+            
+            let hours = parseInt(timeMatch[1]);
+            const minutes = timeMatch[2] || '00';
+            const ampm = timeMatch[3];
+            
+            if (ampm) {
+                if (ampm.toLowerCase() === 'pm' && hours !== 12) hours += 12;
+                if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
+            }
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes}`;
+        }
+
+        // Enhanced notification system
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification with enhanced animation
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Hide after 4 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 400);
+            }, 4000);
+        }
+
+        // Enhanced mobile touch handling
+        if ('ontouchstart' in window) {
+            document.addEventListener('touchstart', function() {
+                // Add touch-specific optimizations
+                document.body.style.cursor = 'pointer';
+            });
+        }
+
+        // Performance optimization: debounce frequent operations
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Debounced auto-save
+        const debouncedAutoSave = debounce(autoSave, 2000);
+
+        // Enhanced initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                setupEventListeners();
+                initializeDate();
+                detectUserLocation();
+                
+                // Try to load saved agenda first, otherwise load sample data
+                const saved = localStorage.getItem('savedAgenda');
+                if (saved) {
+                    loadAgenda();
+                } else {
+                    loadSampleData();
+                }
+                
+                // Initialize state for undo
+                setTimeout(() => {
+                    saveStateForUndo();
+                    updateUndoButton();
+                }, 1000);
+                
+            } catch (error) {
+                showErrorBoundary('Failed to initialize the application. Please refresh the page.');
+                console.error('Initialization error:', error);
+            }
+        });
+
+        // Service Worker registration for offline support (optional)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // Uncomment when you have a service worker
+                // navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        console.log('✨ Agenda Organizer loaded successfully!');
     </script>
 </body>
 </html>
