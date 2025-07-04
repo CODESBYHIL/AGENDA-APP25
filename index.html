@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Agenda Organizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #FAFAFA;
+            min-height: 100vh;
+            color: #1A1A1A;
+            line-height: 1.5;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .loading-suggestions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .loading-chip {
+            width: 80px;
+            height: 32px;
+            background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 24px 0;
+            animation: slideInFromLeft 0.8s ease-out 0.2s both;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #1A1A1A;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1rem;
+            color: #6B7280;
+            font-weight: 400;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            height: fit-content;
+            animation: slideInFromLeft 0.8s ease-out 0.4s both;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .timeline-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            min-height: 600px;
+            animation: slideInFromRight 0.8s ease-out 0.4s both;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1A1A1A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            background: #1A1A1A;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover {
+            background: #374151;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #1A1A1A;
+            border: 1px solid #E5E7EB;
+        }
+
+        .btn-secondary:hover {
+            background: #E5E7EB;
+        }
+
+        .agenda-type-selector {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .agenda-type {
+            padding: 12px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            text-align: left;
+        }
+
+        .agenda-type:hover, .agenda-type.active {
+            border-color: #1A1A1A;
+            background: #F9FAFB;
+        }
+
+        .agenda-type .icon {
+            font-size: 1.25rem;
+            margin-right: 8px;
+            color: #6B7280;
+        }
+
+        .agenda-type h3 {
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 0.875rem;
+            display: inline;
+        }
+
+        .agenda-type p {
+            font-size: 0.75rem;
+            color: #9CA3AF;
+            margin: 0;
+        }
+
+        .event-form {
+            background: #F9FAFB;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1A1A1A;
+            box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-control:hover {
+            border-color: #9CA3AF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #E5E7EB;
+            border-radius: 1px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 16px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #F3F4F6;
+            transition: all 0.3s ease;
+            cursor: grab;
+            animation: slideInFromRight 0.5s ease-out;
+        }
+
+        .timeline-item:hover {
+            border-color: #D1D5DB;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateX(4px) translateY(-2px);
+        }
+
+        .timeline-item:active {
+            cursor: grabbing;
+            transform: rotate(2deg);
+        }
+
+        .timeline-item.dragging {
+            opacity: 0.8;
+            transform: rotate(5deg) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -38px;
+            top: 20px;
+            width: 8px;
+            height: 8px;
+            background: #6B7280;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .event-time {
+            font-weight: 600;
+            color: #1A1A1A;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+
+        .event-title {
+            font-weight: 500;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #1A1A1A;
+        }
+
+        .event-location {
+            color: #6B7280;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.875rem;
+        }
+
+        .event-notes {
+            color: #6B7280;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            font-size: 0.875rem;
+        }
+
+        .event-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+            background: #F3F4F6;
+            border: 1px solid #E5E7EB;
+        }
+
+        .tag-food { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+        .tag-chill { background: #EFF6FF; border-color: #BFDBFE; color: #1E40AF; }
+        .tag-errand { background: #F0FDF4; border-color: #BBF7D0; color: #166534; }
+        .tag-work { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+
+        .nearby-suggestions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #E9ECEF;
+        }
+
+        .suggestion-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .suggestion-chip {
+            padding: 8px 12px;
+            background: #F1F3F4;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #E5E7EB;
+            margin-bottom: 4px;
+            position: relative;
+            overflow: hidden;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        .suggestion-chip::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .suggestion-chip:hover {
+            background: #1A1A1A;
+            color: white;
+            border-color: #1A1A1A;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .suggestion-chip:hover::before {
+            left: 100%;
+        }
+
+        .suggestion-chip:active {
+            transform: scale(0.95);
+        }
+
+        .group-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #E9ECEF;
+        }
+
+        .group-members {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B, #74B9FF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .member-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .comments-section {
+            background: #F8F9FA;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .comment {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #FF6B6B;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #FF6B6B;
+            margin-bottom: 5px;
+        }
+
+        .floating-add-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1A1A1A;
+            color: white;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            animation: bounceIn 1s ease-out 0.8s both;
+        }
+
+        .floating-add-btn:hover {
+            background: #374151;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .floating-add-btn:active {
+            transform: scale(0.95);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7F8C8D;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #9CA3AF;
+        }
+
+        .empty-state h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+
+
+
+        .ai-suggestion-box {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .ai-suggestion-box h3 {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1A1A1A;
+            font-size: 0.875rem;
+        }
+
+        .ai-suggestion-box p {
+            color: #6B7280;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            animation: pulse 0.5s ease-out 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #00B894, #00A085);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #FF6B6B, #E55353);
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #74B9FF, #0984E3);
+        }
+
+        .delete-btn {
+            background: #F3F4F6;
+            color: #6B7280;
+            border: 1px solid #E5E7EB;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: #FEF2F2;
+            color: #DC2626;
+            border-color: #FECACA;
+        }
+
+        .agenda-date-input {
+            margin-bottom: 20px;
+        }
+
+        .save-agenda-btn {
+            width: 100%;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #00B894, #00A085);
+        }
+
+        .save-agenda-btn:hover {
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Agenda</h1>
+            <p>Plan your perfect day, weekend, or trip</p>
+        </header>
+
+        <div class="ai-suggestion-box">
+            <h3>AI Planning Assistant</h3>
+            <p>Coming soon: Describe your plans in natural language and get smart suggestions automatically.</p>
+            <button class="btn btn-secondary">Notify me</button>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="section-title">
+                    Create Agenda
+                </div>
+                
+                <div class="agenda-date-input">
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #374151; font-size: 0.875rem;">Date</label>
+                    <input type="date" class="form-control" id="agendaDate" value="">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500; color: #374151; font-size: 0.875rem;">City</label>
+                    <select class="form-control" id="citySelector" onchange="updateCity()">
+                        <option value="hawaii">Hawaii</option>
+                        <option value="los angeles">Los Angeles</option>
+                        <option value="new york">New York</option>
+                        <option value="san francisco">San Francisco</option>
+                        <option value="miami">Miami</option>
+                    </select>
+                </div>
+
+                <div class="agenda-type-selector">
+                    <div class="agenda-type active" data-type="day">
+                        <div style="display: flex; align-items: center;">
+                            <span class="icon">•</span>
+                            <div>
+                                <h3>Single Day</h3>
+                                <p>Perfect for a day out</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agenda-type" data-type="weekend">
+                        <div style="display: flex; align-items: center;">
+                            <span class="icon">•</span>
+                            <div>
+                                <h3>Weekend</h3>
+                                <p>2-3 day adventure</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agenda-type" data-type="trip">
+                        <div style="display: flex; align-items: center;">
+                            <span class="icon">•</span>
+                            <div>
+                                <h3>Whole Trip</h3>
+                                <p>Multi-day journey</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn save-agenda-btn" onclick="saveAgenda()">Save Agenda</button>
+
+                <div class="event-form">
+                    <h3 style="margin-bottom: 16px; font-size: 1rem; font-weight: 500;">Add New Event</h3>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <input type="time" class="form-control" id="eventTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" class="form-control" id="eventLocation" placeholder="Enter location">
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-control" id="eventTitle" placeholder="What's happening?">
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea class="form-control" id="eventNotes" rows="2" placeholder="Additional notes"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Link</label>
+                        <input type="url" class="form-control" id="eventLink" placeholder="Website or menu">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select class="form-control" id="eventCategory">
+                            <option value="food">Food</option>
+                            <option value="chill">Chill</option>
+                            <option value="errand">Errand</option>
+                            <option value="work">Work</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="addEvent()">Add Event</button>
+                </div>
+
+                <div class="group-section">
+                    <div class="section-title">
+                        Group Members
+                    </div>
+                    <div class="group-members">
+                        <div class="member-avatar" title="You">M</div>
+                        <div class="member-avatar" title="Add Member" onclick="addMember()">+</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+                        <button class="btn btn-secondary" onclick="shareAgenda()">Share</button>
+                        <button class="btn btn-secondary" onclick="exportAgenda()">Export</button>
+                    </div>
+                    <button class="btn" onclick="loadAgenda()" style="width: 100%; margin-top: 8px;">Load Saved</button>
+                </div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="section-title">
+                    Timeline
+                    <div style="margin-left: auto;">
+                        <span style="font-size: 0.75rem; font-weight: 400; color: #9CA3AF;">Drag to reorder</span>
+                    </div>
+                </div>
+                
+                <div class="timeline" id="timeline">
+                    <div class="empty-state">
+                        <h3>Your timeline is empty</h3>
+                        <p>Add your first event to get started</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px; text-align: center;" id="timelineActions">
+                    <button class="btn" onclick="clearAllEvents()" style="background: #DC2626; margin-right: 8px;">Clear All</button>
+                    <button class="btn btn-secondary" onclick="exportAgenda()">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="floating-add-btn" onclick="quickAddEvent()">
+        +
+    </button>
+
+    <!-- Modal for quick add -->
+    <div class="modal" id="quickAddModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2>Quick Add Event</h2>
+            <div style="margin-top: 30px;">
+                <div class="form-group">
+                    <label>Event Description</label>
+                    <input type="text" class="form-control" id="quickEventText" placeholder="e.g., Lunch at Italian place at 1pm">
+                </div>
+                <button class="btn" onclick="parseQuickEvent()">Add Event</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let agendaType = 'day';
+        let events = [];
+        let groupMembers = [
+            { name: 'Monica', initial: 'M', color: '#FF6B6B' },
+            { name: 'Dad', initial: 'D', color: '#74B9FF' },
+            { name: 'Mom', initial: 'M', color: '#00B894' }
+        ];
+
+        // Real places data by city
+        const placesData = {
+            'los angeles': {
+                restaurants: [
+                    { name: 'Republique', type: 'French Bistro', rating: 4.5, area: 'Mid-City' },
+                    { name: 'Guelaguetza', type: 'Oaxacan', rating: 4.6, area: 'Koreatown' },
+                    { name: 'Night + Market', type: 'Thai', rating: 4.4, area: 'West Hollywood' },
+                    { name: 'Providence', type: 'Fine Dining', rating: 4.7, area: 'Hollywood' },
+                    { name: 'Bestia', type: 'Italian', rating: 4.5, area: 'Downtown' }
+                ],
+                cafes: [
+                    { name: 'Blue Bottle Coffee', type: 'Specialty Coffee', rating: 4.3, area: 'Arts District' },
+                    { name: 'Intelligentsia', type: 'Coffee Roaster', rating: 4.4, area: 'Silver Lake' },
+                    { name: 'Go Get Em Tiger', type: 'Local Coffee', rating: 4.5, area: 'Larchmont' },
+                    { name: 'Alfred Coffee', type: 'Trendy Coffee', rating: 4.2, area: 'Melrose' }
+                ],
+                attractions: [
+                    { name: 'Griffith Observatory', type: 'Observatory', rating: 4.6, area: 'Griffith Park' },
+                    { name: 'Getty Center', type: 'Art Museum', rating: 4.7, area: 'Brentwood' },
+                    { name: 'Santa Monica Pier', type: 'Amusement Park', rating: 4.3, area: 'Santa Monica' },
+                    { name: 'Hollywood Sign', type: 'Landmark', rating: 4.4, area: 'Hollywood Hills' },
+                    { name: 'Venice Beach', type: 'Beach', rating: 4.1, area: 'Venice' }
+                ],
+                shopping: [
+                    { name: 'The Grove', type: 'Shopping Center', rating: 4.3, area: 'Fairfax' },
+                    { name: 'Rodeo Drive', type: 'Luxury Shopping', rating: 4.2, area: 'Beverly Hills' },
+                    { name: 'Melrose Trading Post', type: 'Vintage Market', rating: 4.4, area: 'Fairfax' },
+                    { name: 'Third Street Promenade', type: 'Shopping Street', rating: 4.0, area: 'Santa Monica' }
+                ]
+            },
+            'new york': {
+                restaurants: [
+                    { name: 'Le Bernardin', type: 'French Seafood', rating: 4.8, area: 'Midtown' },
+                    { name: 'Katz\'s Delicatessen', type: 'Deli', rating: 4.4, area: 'Lower East Side' },
+                    { name: 'Joe\'s Pizza', type: 'Pizza', rating: 4.3, area: 'Greenwich Village' },
+                    { name: 'Peter Luger', type: 'Steakhouse', rating: 4.5, area: 'Brooklyn' },
+                    { name: 'Xi\'an Famous Foods', type: 'Chinese', rating: 4.2, area: 'Multiple Locations' }
+                ],
+                cafes: [
+                    { name: 'Blue Bottle Coffee', type: 'Specialty Coffee', rating: 4.3, area: 'Multiple Locations' },
+                    { name: 'Stumptown Coffee', type: 'Coffee Roaster', rating: 4.4, area: 'Multiple Locations' },
+                    { name: 'Joe Coffee', type: 'Local Coffee', rating: 4.3, area: 'Multiple Locations' },
+                    { name: 'Think Coffee', type: 'Community Coffee', rating: 4.2, area: 'Multiple Locations' }
+                ],
+                attractions: [
+                    { name: 'Central Park', type: 'Park', rating: 4.7, area: 'Manhattan' },
+                    { name: 'Metropolitan Museum', type: 'Art Museum', rating: 4.7, area: 'Upper East Side' },
+                    { name: 'Brooklyn Bridge', type: 'Landmark', rating: 4.6, area: 'Brooklyn/Manhattan' },
+                    { name: 'High Line', type: 'Park', rating: 4.5, area: 'Chelsea' },
+                    { name: 'One World Observatory', type: 'Observatory', rating: 4.4, area: 'Financial District' }
+                ],
+                shopping: [
+                    { name: 'SoHo', type: 'Shopping District', rating: 4.3, area: 'SoHo' },
+                    { name: 'Fifth Avenue', type: 'Luxury Shopping', rating: 4.4, area: 'Midtown' },
+                    { name: 'Brooklyn Flea', type: 'Vintage Market', rating: 4.2, area: 'Brooklyn' },
+                    { name: 'Union Square Market', type: 'Farmers Market', rating: 4.3, area: 'Union Square' }
+                ]
+            },
+            'san francisco': {
+                restaurants: [
+                    { name: 'Atelier Crenn', type: 'French Fine Dining', rating: 4.6, area: 'Marina' },
+                    { name: 'Tartine Bakery', type: 'Bakery', rating: 4.4, area: 'Mission' },
+                    { name: 'Swan Oyster Depot', type: 'Seafood', rating: 4.5, area: 'Nob Hill' },
+                    { name: 'Mission Chinese Food', type: 'Chinese', rating: 4.2, area: 'Mission' },
+                    { name: 'Zuni Cafe', type: 'California Cuisine', rating: 4.3, area: 'Hayes Valley' }
+                ],
+                cafes: [
+                    { name: 'Blue Bottle Coffee', type: 'Specialty Coffee', rating: 4.4, area: 'Multiple Locations' },
+                    { name: 'Sightglass Coffee', type: 'Local Roaster', rating: 4.3, area: 'SOMA' },
+                    { name: 'Ritual Coffee', type: 'Community Coffee', rating: 4.2, area: 'Mission' },
+                    { name: 'Philz Coffee', type: 'Custom Blends', rating: 4.1, area: 'Multiple Locations' }
+                ],
+                attractions: [
+                    { name: 'Golden Gate Bridge', type: 'Landmark', rating: 4.7, area: 'Golden Gate' },
+                    { name: 'Alcatraz Island', type: 'Historic Site', rating: 4.5, area: 'Bay' },
+                    { name: 'Lombard Street', type: 'Landmark', rating: 4.2, area: 'Russian Hill' },
+                    { name: 'Fisherman\'s Wharf', type: 'Waterfront', rating: 4.0, area: 'Fisherman\'s Wharf' },
+                    { name: 'Golden Gate Park', type: 'Park', rating: 4.6, area: 'Richmond' }
+                ],
+                                 shopping: [
+                     { name: 'Union Square', type: 'Shopping District', rating: 4.2, area: 'Union Square' },
+                     { name: 'Haight Street', type: 'Vintage Shopping', rating: 4.3, area: 'Haight-Ashbury' },
+                     { name: 'Ferry Building Marketplace', type: 'Food Market', rating: 4.5, area: 'Embarcadero' },
+                     { name: 'Valencia Street', type: 'Local Shopping', rating: 4.4, area: 'Mission' }
+                 ]
+             },
+             'hawaii': {
+                 restaurants: [
+                     { name: 'Mama\'s Fish House', type: 'Seafood', rating: 4.6, area: 'Paia, Maui' },
+                     { name: 'Helena\'s Hawaiian Food', type: 'Local Hawaiian', rating: 4.5, area: 'Honolulu' },
+                     { name: 'Roy\'s Waikiki', type: 'Hawaiian Fusion', rating: 4.4, area: 'Waikiki' },
+                     { name: 'Rainbow Drive-In', type: 'Local Plate Lunch', rating: 4.3, area: 'Honolulu' },
+                     { name: 'Duke\'s Waikiki', type: 'Beachfront Dining', rating: 4.2, area: 'Waikiki' }
+                 ],
+                 cafes: [
+                     { name: 'Kona Coffee Living History Farm', type: 'Coffee Farm', rating: 4.7, area: 'Big Island' },
+                     { name: 'Island Vintage Coffee', type: 'Local Coffee', rating: 4.4, area: 'Multiple Locations' },
+                     { name: 'Honolulu Coffee', type: 'Hawaiian Coffee', rating: 4.3, area: 'Multiple Locations' },
+                     { name: 'Morning Glass Coffee', type: 'Specialty Coffee', rating: 4.5, area: 'Honolulu' }
+                 ],
+                 attractions: [
+                     { name: 'Pearl Harbor', type: 'Historic Site', rating: 4.7, area: 'Pearl Harbor' },
+                     { name: 'Diamond Head', type: 'Hiking Trail', rating: 4.5, area: 'Honolulu' },
+                     { name: 'Haleakalā National Park', type: 'National Park', rating: 4.8, area: 'Maui' },
+                     { name: 'Waikiki Beach', type: 'Beach', rating: 4.4, area: 'Waikiki' },
+                     { name: 'Road to Hana', type: 'Scenic Drive', rating: 4.6, area: 'Maui' },
+                     { name: 'Polynesian Cultural Center', type: 'Cultural Experience', rating: 4.3, area: 'Laie' }
+                 ],
+                 shopping: [
+                     { name: 'Ala Moana Center', type: 'Shopping Mall', rating: 4.3, area: 'Honolulu' },
+                     { name: 'International Market Place', type: 'Open-air Shopping', rating: 4.2, area: 'Waikiki' },
+                     { name: 'KCC Saturday Farmers Market', type: 'Farmers Market', rating: 4.5, area: 'Diamond Head' },
+                     { name: 'Chinatown Markets', type: 'Local Markets', rating: 4.1, area: 'Chinatown' }
+                 ]
+             },
+             'miami': {
+                 restaurants: [
+                     { name: 'Joe\'s Stone Crab', type: 'Seafood', rating: 4.5, area: 'South Beach' },
+                     { name: 'Versailles Restaurant', type: 'Cuban', rating: 4.4, area: 'Little Havana' },
+                     { name: 'Zuma Miami', type: 'Japanese', rating: 4.3, area: 'Downtown' },
+                     { name: 'Prime 112', type: 'Steakhouse', rating: 4.2, area: 'South Beach' }
+                 ],
+                 cafes: [
+                     { name: 'Panther Coffee', type: 'Specialty Coffee', rating: 4.4, area: 'Multiple Locations' },
+                     { name: 'Café Bustelo', type: 'Cuban Coffee', rating: 4.3, area: 'Little Havana' },
+                     { name: 'All Day', type: 'Brunch Cafe', rating: 4.2, area: 'South Beach' }
+                 ],
+                 attractions: [
+                     { name: 'Art Deco Historic District', type: 'Architecture', rating: 4.5, area: 'South Beach' },
+                     { name: 'Wynwood Walls', type: 'Street Art', rating: 4.4, area: 'Wynwood' },
+                     { name: 'Vizcaya Museum', type: 'Historic Mansion', rating: 4.6, area: 'Coconut Grove' },
+                     { name: 'Everglades National Park', type: 'National Park', rating: 4.7, area: 'Everglades' }
+                 ],
+                 shopping: [
+                     { name: 'Lincoln Road', type: 'Pedestrian Mall', rating: 4.2, area: 'South Beach' },
+                     { name: 'Aventura Mall', type: 'Shopping Mall', rating: 4.3, area: 'Aventura' },
+                     { name: 'Bayside Marketplace', type: 'Waterfront Shopping', rating: 4.1, area: 'Downtown' }
+                 ]
+             }
+         };
+
+        let userLocation = { city: null, lat: null, lng: null };
+        let userPreferences = { dietaryRestrictions: [], interests: [], budget: 'medium' };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            initializeDate();
+            detectUserLocation();
+            
+            // Try to load saved agenda first, otherwise load sample data
+            const saved = localStorage.getItem('savedAgenda');
+            if (saved) {
+                loadAgenda();
+            } else {
+                loadSampleData();
+            }
+        });
+
+        // Detect user location
+        function detectUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation.lat = position.coords.latitude;
+                        userLocation.lng = position.coords.longitude;
+                        getCityFromCoords(userLocation.lat, userLocation.lng);
+                    },
+                    (error) => {
+                        console.log('Location access denied, using default suggestions');
+                        userLocation.city = 'hawaii'; // Default to Hawaii since user is there
+                        showNotification('Location access denied - set your city manually above', 'info');
+                    }
+                );
+            } else {
+                userLocation.city = 'hawaii'; // Default city
+                showNotification('Location detection not supported - set your city manually above', 'info');
+            }
+        }
+
+        // Get city from coordinates (simplified - in real app would use Google Maps API)
+        function getCityFromCoords(lat, lng) {
+            // More accurate city detection based on coordinates
+            if (lat >= 19.5 && lat <= 22.5 && lng >= -161.0 && lng <= -154.0) {
+                userLocation.city = 'hawaii';
+            } else if (lat >= 34.0 && lat <= 34.5 && lng >= -118.7 && lng <= -118.0) {
+                userLocation.city = 'los angeles';
+            } else if (lat >= 40.4 && lat <= 40.9 && lng >= -74.3 && lng <= -73.7) {
+                userLocation.city = 'new york';
+            } else if (lat >= 37.6 && lat <= 37.9 && lng >= -122.7 && lng <= -122.3) {
+                userLocation.city = 'san francisco';
+            } else if (lat >= 25.5 && lat <= 26.0 && lng >= -80.5 && lng <= -80.0) {
+                userLocation.city = 'miami';
+            } else {
+                // Show actual coordinates for debugging
+                console.log(`Unknown location: ${lat}, ${lng}`);
+                userLocation.city = 'hawaii'; // Default to Hawaii
+                showNotification(`Unknown location (${lat.toFixed(2)}, ${lng.toFixed(2)}) - set your city manually`, 'info');
+                return;
+            }
+            
+            // Update the city selector
+            const citySelector = document.getElementById('citySelector');
+            if (citySelector) {
+                citySelector.value = userLocation.city;
+            }
+            
+            showNotification(`Detected location: ${userLocation.city.charAt(0).toUpperCase() + userLocation.city.slice(1)}`, 'success');
+        }
+
+        function setupEventListeners() {
+            // Agenda type selection
+            document.querySelectorAll('.agenda-type').forEach(type => {
+                type.addEventListener('click', function() {
+                    document.querySelectorAll('.agenda-type').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    agendaType = this.dataset.type;
+                });
+            });
+
+            // Make timeline sortable (basic drag functionality)
+            const timeline = document.getElementById('timeline');
+            let draggedElement = null;
+
+            timeline.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('timeline-item')) {
+                    draggedElement = e.target;
+                    e.target.classList.add('dragging');
+                    e.target.style.opacity = '0.8';
+                }
+            });
+
+            timeline.addEventListener('dragend', function(e) {
+                if (e.target.classList.contains('timeline-item')) {
+                    e.target.classList.remove('dragging');
+                    e.target.style.opacity = '1';
+                    draggedElement = null;
+                }
+            });
+
+            timeline.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                const dropTarget = e.target.closest('.timeline-item');
+                if (dropTarget && dropTarget !== draggedElement) {
+                    dropTarget.style.transform = 'scale(1.02)';
+                    dropTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                }
+            });
+
+            timeline.addEventListener('dragleave', function(e) {
+                const dropTarget = e.target.closest('.timeline-item');
+                if (dropTarget) {
+                    dropTarget.style.transform = '';
+                    dropTarget.style.boxShadow = '';
+                }
+            });
+
+            timeline.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const dropTarget = e.target.closest('.timeline-item');
+                
+                // Reset drop target styles
+                if (dropTarget) {
+                    dropTarget.style.transform = '';
+                    dropTarget.style.boxShadow = '';
+                }
+                
+                if (draggedElement && dropTarget && dropTarget !== draggedElement) {
+                    const rect = dropTarget.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    
+                    // Add drop animation
+                    draggedElement.style.animation = 'bounceIn 0.5s ease-out';
+                    
+                    timeline.insertBefore(draggedElement, next ? dropTarget.nextSibling : dropTarget);
+                    reorderEvents();
+                    
+                    // Reset animation after completion
+                    setTimeout(() => {
+                        if (draggedElement) {
+                            draggedElement.style.animation = '';
+                        }
+                    }, 500);
+                }
+            });
+        }
+
+        function addEvent() {
+            const time = document.getElementById('eventTime').value;
+            const location = document.getElementById('eventLocation').value;
+            const title = document.getElementById('eventTitle').value;
+            const notes = document.getElementById('eventNotes').value;
+            const link = document.getElementById('eventLink').value;
+            const category = document.getElementById('eventCategory').value;
+
+            if (!time || !title) {
+                showNotification('Please fill in at least the time and title!', 'error');
+                return;
+            }
+
+            const event = {
+                id: Date.now(),
+                time,
+                location,
+                title,
+                notes,
+                link,
+                category,
+                suggestions: generateSuggestions(location, category),
+                comments: []
+            };
+
+            events.push(event);
+            renderTimeline();
+            updateTimelineActions();
+            clearForm();
+            showNotification('Event added successfully! 🎉', 'success');
+            
+            // Animate the newly added item
+            setTimeout(() => {
+                const newItem = document.querySelector(`[data-event-id="${event.id}"]`);
+                if (newItem) {
+                    newItem.style.animation = 'bounceIn 0.6s ease-out';
+                    newItem.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        newItem.style.animation = '';
+                        newItem.style.transform = '';
+                    }, 600);
+                }
+            }, 100);
+        }
+
+        function generateSuggestions(eventLocation, eventCategory) {
+            const userCity = userLocation.city || 'los angeles';
+            const cityData = placesData[userCity];
+            
+            if (!cityData) return [];
+            
+            let suggestions = [];
+            
+            // Smart suggestions based on event category
+            if (eventCategory === 'food') {
+                suggestions = [...cityData.restaurants, ...cityData.cafes];
+            } else if (eventCategory === 'chill') {
+                suggestions = [...cityData.attractions, ...cityData.cafes];
+            } else if (eventCategory === 'errand') {
+                suggestions = [...cityData.shopping, ...cityData.cafes];
+            } else {
+                // Mix of everything
+                suggestions = [
+                    ...cityData.restaurants.slice(0, 2),
+                    ...cityData.cafes.slice(0, 2),
+                    ...cityData.attractions.slice(0, 2)
+                ];
+            }
+            
+            // Sort by rating and return top 4
+            return suggestions
+                .sort((a, b) => b.rating - a.rating)
+                .slice(0, 4)
+                .map(place => ({
+                    name: place.name,
+                    type: place.type,
+                    rating: place.rating,
+                    area: place.area,
+                    displayText: `${place.name} (${place.rating}★) - ${place.area}`
+                }));
+        }
+
+        function renderTimeline() {
+            const timeline = document.getElementById('timeline');
+            
+            if (events.length === 0) {
+                timeline.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-day"></i>
+                        <h3>Your timeline is empty</h3>
+                        <p>Add your first event to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort events by time
+            events.sort((a, b) => a.time.localeCompare(b.time));
+
+            timeline.innerHTML = events.map(event => `
+                <div class="timeline-item" draggable="true" data-event-id="${event.id}">
+                    <div class="event-time">${formatTime(event.time)}</div>
+                    <div class="event-title">
+                        ${event.title}
+                        <button class="delete-btn" onclick="deleteEvent(${event.id})">×</button>
+                    </div>
+                    ${event.location ? `<div class="event-location">${event.location}</div>` : ''}
+                    ${event.notes ? `<div class="event-notes">${event.notes}</div>` : ''}
+                    <div class="event-tags">
+                        <span class="tag tag-${event.category}">${getCategoryIcon(event.category)} ${event.category}</span>
+                    </div>
+                    ${event.link ? `<div><a href="${event.link}" target="_blank" style="color: #1A1A1A; font-size: 0.875rem; text-decoration: underline;">View Link</a></div>` : ''}
+                    
+                    <div class="nearby-suggestions">
+                        <div style="font-weight: 500; margin-bottom: 8px; color: #6B7280; font-size: 0.75rem;">Suggested nearby (${userLocation.city || 'Los Angeles'})</div>
+                        <div class="suggestion-chips">
+                            ${event.suggestions.map(suggestion => 
+                                `<span class="suggestion-chip" onclick="addSuggestionToSchedule('${suggestion.name}', '${suggestion.type}', '${suggestion.area}', ${suggestion.rating})" title="${suggestion.type} in ${suggestion.area}">${suggestion.displayText}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+
+                    <div class="comments-section">
+                        <div style="font-weight: 500; margin-bottom: 8px; font-size: 0.75rem; color: #6B7280;">Comments</div>
+                        ${event.comments && event.comments.length > 0 ? 
+                            event.comments.map(comment => `
+                                <div class="comment">
+                                    <div class="comment-author">${comment.author}</div>
+                                    <div>${comment.text}</div>
+                                    <div style="font-size: 0.8rem; color: #999; margin-top: 5px;">${comment.time}</div>
+                                </div>
+                            `).join('') : 
+                            '<div style="color: #999; font-style: italic;">No comments yet</div>'
+                        }
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; margin-top: 8px;" onclick="addComment(${event.id})">Add Comment</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                food: '',
+                chill: '',
+                errand: '',
+                work: ''
+            };
+            return icons[category] || '';
+        }
+
+        function clearForm() {
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventLocation').value = '';
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventNotes').value = '';
+            document.getElementById('eventLink').value = '';
+            document.getElementById('eventCategory').value = 'food';
+        }
+
+        function addSuggestionToSchedule(placeName, placeType, area, rating) {
+            const time = prompt(`What time for ${placeName}?`, '15:00');
+            if (time) {
+                const event = {
+                    id: Date.now(),
+                    time: time,
+                    location: `${area}`,
+                    title: `Visit ${placeName}`,
+                    notes: `${placeType} • ${rating}★ rating • Added from suggestions`,
+                    link: '',
+                    category: 'chill',
+                    suggestions: generateSuggestions(area, 'chill'),
+                    comments: []
+                };
+                events.push(event);
+                renderTimeline();
+                updateTimelineActions();
+                showNotification(`Added "${placeName}" to timeline!`, 'success');
+            }
+        }
+
+        function addComment(eventId) {
+            const comment = prompt('Add your comment:');
+            if (comment && comment.trim()) {
+                const event = events.find(e => e.id === eventId);
+                if (event) {
+                    if (!event.comments) event.comments = [];
+                    event.comments.push({
+                        author: 'You',
+                        text: comment.trim(),
+                        time: 'just now'
+                    });
+                    renderTimeline();
+                    showNotification('Comment added! 💬', 'success');
+                }
+            }
+        }
+
+        function addMember() {
+            const name = prompt('Enter member name:');
+            if (name) {
+                groupMembers.push({
+                    name: name,
+                    initial: name.charAt(0).toUpperCase(),
+                    color: getRandomColor()
+                });
+                renderGroupMembers();
+            }
+        }
+
+        function renderGroupMembers() {
+            const container = document.querySelector('.group-members');
+            container.innerHTML = groupMembers.map(member => 
+                `<div class="member-avatar" style="background: ${member.color}" title="${member.name}">${member.initial}</div>`
+            ).join('') + '<div class="member-avatar" title="Add Member" onclick="addMember()">+</div>';
+        }
+
+        function getRandomColor() {
+            const colors = ['#FF6B6B', '#74B9FF', '#00B894', '#FDCB6E', '#E17055', '#A29BFE'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function shareAgenda() {
+            const agendaData = {
+                type: agendaType,
+                date: document.getElementById('agendaDate').value,
+                events: events,
+                members: groupMembers
+            };
+            const shareText = `Check out my ${agendaType} agenda! ${events.length} events planned.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '✨ My Agenda',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(`${shareText}\n${window.location.href}`).then(() => {
+                    showNotification('Agenda details copied to clipboard! 📋', 'success');
+                });
+            }
+        }
+
+        function quickAddEvent() {
+            document.getElementById('quickAddModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('quickAddModal').style.display = 'none';
+        }
+
+        function parseQuickEvent() {
+            const text = document.getElementById('quickEventText').value;
+            if (!text.trim()) {
+                showNotification('Please enter an event description!', 'error');
+                return;
+            }
+            
+            // Enhanced parsing logic
+            const timeMatch = text.match(/(\d{1,2})(:?\d{2})?\s*(am|pm)/i) || text.match(/(\d{1,2}):(\d{2})/);
+            const locationMatch = text.match(/at\s+([^,]+)/i);
+            
+            const time = timeMatch ? parseTime(timeMatch[0]) : '12:00';
+            const location = locationMatch ? locationMatch[1].trim() : '';
+            
+            // Auto-detect category
+            let category = 'chill';
+            const foodWords = ['lunch', 'dinner', 'breakfast', 'brunch', 'coffee', 'restaurant', 'eat', 'food'];
+            const workWords = ['meeting', 'work', 'office', 'call', 'conference'];
+            const chillWords = ['walk', 'park', 'beach', 'relax', 'movie', 'hang'];
+            
+            const textLower = text.toLowerCase();
+            if (foodWords.some(word => textLower.includes(word))) category = 'food';
+            else if (workWords.some(word => textLower.includes(word))) category = 'work';
+            else if (chillWords.some(word => textLower.includes(word))) category = 'chill';
+            
+            // Auto-fill the form
+            document.getElementById('eventTitle').value = text;
+            document.getElementById('eventTime').value = time;
+            document.getElementById('eventLocation').value = location;
+            document.getElementById('eventCategory').value = category;
+            
+            closeModal();
+            document.getElementById('quickEventText').value = '';
+            
+            // Automatically add the event
+            addEvent();
+        }
+
+        function parseTime(timeStr) {
+            // Convert natural time to 24-hour format
+            if (timeStr.includes('pm') && !timeStr.includes('12')) {
+                const hour = parseInt(timeStr) + 12;
+                return `${hour}:00`;
+            }
+            return timeStr.includes(':') ? timeStr.replace(/[apm]/gi, '') : `${timeStr.replace(/[apm]/gi, '')}:00`;
+        }
+
+        function reorderEvents() {
+            // Update events array based on DOM order
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const newOrder = [];
+            timelineItems.forEach(item => {
+                const eventId = parseInt(item.dataset.eventId);
+                const event = events.find(e => e.id === eventId);
+                if (event) newOrder.push(event);
+            });
+            events = newOrder;
+        }
+
+        function loadSampleData() {
+            // Add some sample events with smart suggestions
+            events = [
+                {
+                    id: 1,
+                    time: '09:00',
+                    title: 'Morning Coffee',
+                    location: 'Arts District',
+                    notes: 'Try their famous cold brew!',
+                    link: 'https://bluebottlecoffee.com/menu',
+                    category: 'food',
+                    suggestions: generateSuggestions('Arts District', 'food'),
+                    comments: [
+                        { author: 'Monica', text: 'Perfect way to start the day!', time: '2 min ago' },
+                        { author: 'Dad', text: 'Love this place!', time: '5 min ago' }
+                    ]
+                },
+                {
+                    id: 2,
+                    time: '11:30',
+                    title: 'Beach Walk',
+                    location: 'Santa Monica',
+                    notes: 'Bring sunscreen and water',
+                    category: 'chill',
+                    suggestions: generateSuggestions('Santa Monica', 'chill'),
+                    comments: [
+                        { author: 'Mom', text: 'Can\'t wait! The weather looks perfect', time: '1 min ago' }
+                    ]
+                },
+                {
+                    id: 3,
+                    time: '13:00',
+                    title: 'Lunch with Parents',
+                    location: 'Beverly Hills',
+                    notes: 'Make sure to try their famous brunch menu',
+                    category: 'food',
+                    suggestions: generateSuggestions('Beverly Hills', 'food'),
+                    comments: [
+                        { author: 'Monica', text: 'Reserved table for 3!', time: '10 min ago' }
+                    ]
+                }
+            ];
+            renderTimeline();
+            renderGroupMembers();
+        }
+
+        // Add missing functions
+        function deleteEvent(eventId) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                events = events.filter(e => e.id !== eventId);
+                renderTimeline();
+                updateTimelineActions();
+                showNotification('Event deleted! 🗑️', 'success');
+            }
+        }
+
+        function saveAgenda() {
+            const agendaData = {
+                type: agendaType,
+                date: document.getElementById('agendaDate').value,
+                events: events,
+                members: groupMembers,
+                savedAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('savedAgenda', JSON.stringify(agendaData));
+            showNotification('Agenda saved successfully! 💾', 'success');
+        }
+
+        function loadAgenda() {
+            const saved = localStorage.getItem('savedAgenda');
+            if (saved) {
+                const agendaData = JSON.parse(saved);
+                agendaType = agendaData.type;
+                events = agendaData.events || [];
+                groupMembers = agendaData.members || groupMembers;
+                
+                document.getElementById('agendaDate').value = agendaData.date || '';
+                
+                // Update UI
+                document.querySelectorAll('.agenda-type').forEach(t => t.classList.remove('active'));
+                document.querySelector(`[data-type="${agendaType}"]`).classList.add('active');
+                
+                renderTimeline();
+                renderGroupMembers();
+                showNotification('Agenda loaded! 📅', 'success');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.backgroundColor = type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6';
+            document.body.appendChild(notification);
+            
+            // Show notification with enhanced animation
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
+        }
+
+        function exportAgenda() {
+            const agendaData = {
+                type: agendaType,
+                date: document.getElementById('agendaDate').value,
+                events: events,
+                members: groupMembers
+            };
+            
+            const dataStr = JSON.stringify(agendaData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `agenda-${agendaData.date || 'untitled'}.json`;
+            link.click();
+            
+            showNotification('Agenda exported! 📱', 'success');
+        }
+
+        // Initialize date to today
+        function initializeDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('agendaDate').value = today;
+        }
+
+        // Auto-save functionality
+        function autoSave() {
+            if (events.length > 0) {
+                saveAgenda();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('quickAddModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function clearAllEvents() {
+            if (events.length === 0) {
+                showNotification('No events to clear!', 'error');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete all ${events.length} events? This cannot be undone.`)) {
+                events = [];
+                renderTimeline();
+                updateTimelineActions();
+                showNotification('All events cleared! 🗑️', 'success');
+            }
+        }
+
+        // Update timeline actions visibility
+        function updateTimelineActions() {
+            const actions = document.getElementById('timelineActions');
+            if (events.length > 0) {
+                actions.style.display = 'block';
+            } else {
+                actions.style.display = 'none';
+            }
+        }
+
+        function updateCity() {
+            const selectedCity = document.getElementById('citySelector').value;
+            userLocation.city = selectedCity;
+            
+            // Update all events with new suggestions
+            events.forEach(event => {
+                event.suggestions = generateSuggestions(event.location, event.category);
+            });
+            
+            renderTimeline();
+            showNotification(`Switched to ${selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1)} suggestions!`, 'success');
+        }
+
+        // Auto-save every 30 seconds
+        setInterval(autoSave, 30000);
+    </script>
+</body>
+</html>
